@@ -18,6 +18,7 @@ function ns:ADDON_LOADED(event, addon)
         _G[myname.."DB"] = setmetatable(_G[myname.."DB"] or {}, {
             __index = {
                 title = true, -- show title (for dragging)
+                backdrop = true, -- show a backdrop on the frame
                 empty = false, -- show when empty
                 hidden = true, -- show vignettes that won't be on the minimap
                 debug = false, -- show all the debug info in tooltips
@@ -92,6 +93,13 @@ function ns:Refresh()
 
     if not db.empty and count == 0 then
         return window:Hide()
+
+    if db.backdrop then
+        window:SetBackdropColor(0, 0, 0, .5)
+        window:SetBackdropBorderColor(0, 0, 0, .5)
+    else
+        window:SetBackdropColor(0, 0, 0, 0)
+        window:SetBackdropBorderColor(0, 0, 0, 0)
     end
 
     window:SetHeight(height)
@@ -122,8 +130,6 @@ function ns:CreateUI()
         bgFile = [[Interface\Buttons\WHITE8X8]],
         edgeSize = 1,
     })
-    frame:SetBackdropColor(0, 0, 0, .5)
-    frame:SetBackdropBorderColor(0, 0, 0, .5)
 
     frame:EnableMouse(true)
     frame:SetMovable(true)
@@ -199,7 +205,7 @@ function ns:CreateUI()
             line.icon = line:CreateTexture()
             line.icon:SetSize(24, 24)
             line.icon:SetPoint("LEFT", 4, 0)
-            line.title = line:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+            line.title = line:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
             line.title:SetPoint("LEFT", line.icon, "RIGHT", 4, 0)
             line.title:SetPoint("RIGHT")
             line.title:SetJustifyH("LEFT")
@@ -234,6 +240,7 @@ SlashCmdList[myname:upper()] = function(msg)
     if msg == "" then
         ns.Print("What's On The Map?")
         PrintConfigLine('title', "Show a title in the frame")
+        PrintConfigLine('backdrop', "Show a backdrop in the frame")
         PrintConfigLine('empty', "Show while empty")
         PrintConfigLine('hidden', "Show hidden map items")
         PrintConfigLine('debug', "Show debug information")
