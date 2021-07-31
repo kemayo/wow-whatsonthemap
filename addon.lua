@@ -72,6 +72,7 @@ function ns:Refresh()
                 line.title:SetText(vignetteInfo.name)
                 if not (vignetteInfo.onMinimap or vignetteInfo.onWorldMap) then
                     line.icon:SetDesaturated(true)
+                    line.icon:SetAlpha(0.5)
                 end
                 line:Show()
             end
@@ -239,6 +240,7 @@ function ns:CreateUI()
         end
         line.vignetteGUID = nil
         line.icon:SetDesaturated(false)
+        line.icon:SetAlpha(1)
         FramePool_HideAndClearAnchors(pool, line)
     end)
 
