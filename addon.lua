@@ -29,14 +29,10 @@ function ns:ADDON_LOADED(event, addon)
         window = self:CreateUI()
         window:SetPoint("CENTER")
 
-        self:RegisterEvent("VIGNETTE_MINIMAP_UPDATED", "VIGNETTES_UPDATED")
+        self:RegisterEvent("VIGNETTE_MINIMAP_UPDATED", "VIGNETTES_UPDATED", "PLAYER_ENTERING_WORLD")
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
-
--- function ns:PLAYER_ENTERING_WORLD()
---     self:VIGNETTES_UPDATED()
--- end
 
 function ns:Refresh()
     local vignetteids = C_VignetteInfo.GetVignettes()
@@ -103,6 +99,7 @@ function ns:Refresh()
 end
 
 ns.VIGNETTES_UPDATED = ns.Refresh
+ns.PLAYER_ENTERING_WORLD = ns.Refresh
 
 function ns:VIGNETTE_MINIMAP_UPDATED(event, instanceid, onMinimap, ...)
     self:Refresh()
