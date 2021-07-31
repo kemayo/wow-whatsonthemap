@@ -77,7 +77,8 @@ function ns:Refresh()
                 line:Show()
             end
         elseif db.hidden then
-            line.icon:SetAtlas("islands-questdisable")
+            line.icon:SetAtlas("poi-nzothvision") -- "islands-questdisable"?
+            line.icon:SetVertexColor(0.9, 0.3, 1, 1)
             line.title:SetText(UNKNOWN)
             line:Show()
         else
@@ -241,6 +242,7 @@ function ns:CreateUI()
         line.vignetteGUID = nil
         line.icon:SetDesaturated(false)
         line.icon:SetAlpha(1)
+        line.icon:SetVertexColor(1, 1, 1, 1)
         FramePool_HideAndClearAnchors(pool, line)
     end)
 
