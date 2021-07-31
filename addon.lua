@@ -49,7 +49,7 @@ function ns:Refresh()
 
     local count = 0
     local lastLine
-    local height = db.title and (window.title:GetHeight() + 6) or 0
+    local height = db.title and (window.title:GetHeight() + 6) or 6
     for i=1, #vignetteids do
         local instanceid = vignetteids[i]
         -- print(i, vignetteInfo.name)
@@ -91,8 +91,20 @@ function ns:Refresh()
         end
     end
 
-    if not db.empty and count == 0 then
-        return window:Hide()
+    if count == 0 then
+        if not db.empty then
+            return window:Hide()
+        end
+        if not db.title then
+            local line = window.linePool:Acquire()
+            line:SetPoint("TOPLEFT", window.title)
+            line:SetPoint("TOPRIGHT", window.title)
+            line.icon:SetAtlas("xmarksthespot")
+            line.title:SetText(NONE)
+            line:Show()
+            height = height + line:GetHeight()
+        end
+    end
 
     if db.backdrop then
         window:SetBackdropColor(0, 0, 0, .5)
@@ -147,6 +159,7 @@ function ns:CreateUI()
     title:SetText(myfullname)
 
     local function LineTooltip(line)
+        if not line.vignetteGUID then return end
         local anchor = (line:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
@@ -173,6 +186,7 @@ function ns:CreateUI()
     end
     local function Line_OnClick(line, button)
         if button ~= "LeftButton" then return end
+        if not line.vignetteGUID then return end
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
         local uiMapID, x, y = VignettePosition(line.vignetteGUID)
         if IsShiftKeyDown() then
@@ -215,6 +229,7 @@ function ns:CreateUI()
             line:SetScript("OnMouseUp", Line_OnClick)
             line:EnableMouse(true)
         end
+        line.vignetteGUID = nil
         line.icon:SetDesaturated(false)
         FramePool_HideAndClearAnchors(pool, line)
     end)
