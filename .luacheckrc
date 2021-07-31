@@ -120,6 +120,7 @@ read_globals = {
     "ChatEdit_InsertLink",
     "ChatFrame_OpenChat",
     "FramePool_HideAndClearAnchors",
+    "EasyMenu",
 
     -- FrameXML Constants
     "BACKPACK_CONTAINER",
@@ -163,6 +164,7 @@ read_globals = {
     "MAX_CONTAINER_ITEMS",
     "NEW_ITEM_ATLAS_BY_QUALITY",
     "NO",
+    "NONE",
     "NUM_BAG_SLOTS",
     "NUM_BANKBAGSLOTS",
     "NUM_CONTAINER_FRAMES",

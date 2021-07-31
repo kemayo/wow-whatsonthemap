@@ -149,9 +149,9 @@ function ns:CreateUI()
     frame:SetClampedToScreen(true)
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
-    frame:SetScript("OnMouseUp", function(f, button)
+    frame:SetScript("OnMouseUp", function(w, button)
         if button == "RightButton" then
-            return ns:ShowConfigMenu(f)
+            return ns:ShowConfigMenu(w)
         end
     end)
 
