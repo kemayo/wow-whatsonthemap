@@ -149,6 +149,11 @@ function ns:CreateUI()
     frame:SetClampedToScreen(true)
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetScript("OnMouseUp", function(f, button)
+        if button == "RightButton" then
+            return ns:ShowConfigMenu(f)
+        end
+    end)
 
     local title = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     frame.title = title
@@ -185,6 +190,9 @@ function ns:CreateUI()
         GameTooltip:Show()
     end
     local function Line_OnClick(line, button)
+        if button == "RightButton" then
+            return ns:ShowConfigMenu(line)
+        end
         if button ~= "LeftButton" then return end
         if not line.vignetteGUID then return end
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
@@ -260,5 +268,28 @@ SlashCmdList[myname:upper()] = function(msg)
         PrintConfigLine('hidden', "Show hidden map items")
         PrintConfigLine('debug', "Show debug information")
         ns.Print("To toggle: /whatsonthemap [type]")
+    end
+end
+
+do
+    local menuFrame, menuData
+    local isChecked = function(button) return db[button.value] end
+    local toggle = function(button, arg1, arg2, checked)
+        db[button.value] = not checked
+        ns:Refresh()
+    end
+    function ns:ShowConfigMenu(frame)
+        if not menuFrame then
+            menuFrame = CreateFrame("Frame", myname.."MenuFrame", UIParent, "UIDropDownMenuTemplate")
+            menuData = {
+                { text=myfullname, isTitle=true, },
+                { text="Show a title in the frame", value="title", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show a backdrop in the frame", value="backdrop", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show while empty", value="empty", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show hidden map items", value="hidden", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show debug information", value="debug", checked=isChecked, func=toggle, isNotRadio=true, },
+            }
+        end
+        EasyMenu(menuData, menuFrame, "cursor", 0, 0, "MENU")
     end
 end
