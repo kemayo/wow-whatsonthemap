@@ -5,4 +5,6 @@
 ## SavedVariables: WhatsOnTheMapDB
 ## Version: 1
 
+## X-Curse-Project-ID: 509853
+
 addon.lua
