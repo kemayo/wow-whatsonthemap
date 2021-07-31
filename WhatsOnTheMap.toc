@@ -1,0 +1,8 @@
+## Interface: 90100
+## Title: What's On The Map?
+## Author: Kemayo
+## Notes: Show things that have icons on the map or minimap... but not herbs and ore, sorry
+## SavedVariables: WhatsOnTheMapDB
+## Version: 1
+
+addon.lua
