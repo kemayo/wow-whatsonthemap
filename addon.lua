@@ -154,8 +154,24 @@ local function VignetteDistanceFromPlayer(vignetteGUID)
     local player = C_Map.GetPlayerMapPosition(uiMapID, 'player')
     if not player then return end
     local width, height = C_Map.GetMapWorldSize(uiMapID)
-    player:Subtract(position)
-    return player:GetLength() * width
+    position:Subtract(player)
+
+    local angle = (math.pi - Vector2D_CalculateAngleBetween(position.x, position.y, 0, 1))
+    return position:GetLength() * width, angle
+end
+
+local AngleToCompassDirection
+do
+    local function round(x) return x + 0.5 - (x + 0.5) % 1 end
+    local directions = {"North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"}
+    local increment = (2*math.pi) / #directions
+    function AngleToCompassDirection(radians)
+        -- algorithm is: find out how many increments we've gone around the
+        -- circle, rounded to the nearest one, modulo the number of increments so
+        -- we don't go over the top at 2pi
+        local direction = (round(radians / increment) % #directions) + 1
+        return directions[direction]
+    end
 end
 
 function ns:CreateUI()
@@ -193,7 +209,7 @@ function ns:CreateUI()
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
         local _, _, x, y = VignettePosition(line.vignetteGUID)
-        local distance = VignetteDistanceFromPlayer(line.vignetteGUID)
+        local distance, angle = VignetteDistanceFromPlayer(line.vignetteGUID)
         local location = (x and y) and ("%d, %d"):format(x * 100, y * 100) or UNKNOWN
         if vignetteInfo then
             GameTooltip:AddDoubleLine(vignetteInfo.name or UNKNOWN, location, 1, 1, 1)
@@ -201,7 +217,7 @@ function ns:CreateUI()
             GameTooltip:AddDoubleLine("No data from API", location, 1, 0, 0)
         end
         if distance then
-            GameTooltip:AddDoubleLine(" ", ("%d yards away"):format(distance))
+            GameTooltip:AddDoubleLine(" ", ("%d yards away, %s"):format(distance, AngleToCompassDirection(angle)))
         end
         if db.debug then
             if vignetteInfo then

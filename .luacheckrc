@@ -121,6 +121,7 @@ read_globals = {
     "ChatFrame_OpenChat",
     "FramePool_HideAndClearAnchors",
     "EasyMenu",
+    "Vector2D_CalculateAngleBetween",
 
     -- FrameXML Constants
     "BACKPACK_CONTAINER",
