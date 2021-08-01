@@ -12,17 +12,16 @@ function ns:RegisterEvent(...) for i=1,select("#", ...) do f:RegisterEvent((sele
 function ns:UnregisterEvent(...) for i=1,select("#", ...) do f:UnregisterEvent((select(i, ...))) end end
 
 local window
+local setDefaults
 
 function ns:ADDON_LOADED(event, addon)
     if addon == myname then
-        _G[myname.."DB"] = setmetatable(_G[myname.."DB"] or {}, {
-            __index = {
-                title = true, -- show title (for dragging)
-                backdrop = true, -- show a backdrop on the frame
-                empty = false, -- show when empty
-                hidden = true, -- show vignettes that won't be on the minimap
-                debug = false, -- show all the debug info in tooltips
-            },
+        _G[myname.."DB"] = setDefaults(_G[myname.."DB"] or {}, {
+            title = true, -- show title (for dragging)
+            backdrop = true, -- show a backdrop on the frame
+            empty = false, -- show when empty
+            hidden = true, -- show vignettes that won't be on the minimap
+            debug = false, -- show all the debug info in tooltips
         })
         db = _G[myname.."DB"]
         self:UnregisterEvent("ADDON_LOADED")
@@ -296,4 +295,21 @@ do
         end
         EasyMenu(menuData, menuFrame, "cursor", 0, 0, "MENU")
     end
+end
+
+function setDefaults(options, defaults)
+    setmetatable(options, { __index = function(t, k)
+        if type(defaults[k]) == "table" then
+            t[k] = setDefaults({}, defaults[k])
+            return t[k]
+        end
+        return defaults[k]
+    end, })
+    -- and add defaults to existing tables
+    for k, v in pairs(options) do
+        if defaults[k] and type(v) == "table" then
+            setDefaults(v, defaults[k])
+        end
+    end
+    return options
 end
