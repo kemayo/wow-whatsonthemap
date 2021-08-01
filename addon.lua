@@ -144,8 +144,18 @@ local function VignettePosition(vignetteGUID)
     if not uiMapID then return end
     local position = C_VignetteInfo.GetVignettePosition(vignetteGUID, uiMapID)
     if position then
-        return uiMapID, position:GetXY()
+        return uiMapID, position, position:GetXY()
     end
+end
+
+local function VignetteDistanceFromPlayer(vignetteGUID)
+    local uiMapID, position = VignettePosition(vignetteGUID)
+    if not (uiMapID and position) then return end
+    local player = C_Map.GetPlayerMapPosition(uiMapID, 'player')
+    if not player then return end
+    local width, height = C_Map.GetMapWorldSize(uiMapID)
+    player:Subtract(position)
+    return player:GetLength() * width
 end
 
 function ns:CreateUI()
@@ -182,20 +192,25 @@ function ns:CreateUI()
         local anchor = (line:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
-        local _, x, y = VignettePosition(line.vignetteGUID)
+        local _, _, x, y = VignettePosition(line.vignetteGUID)
+        local distance = VignetteDistanceFromPlayer(line.vignetteGUID)
         local location = (x and y) and ("%d, %d"):format(x * 100, y * 100) or UNKNOWN
         if vignetteInfo then
             GameTooltip:AddDoubleLine(vignetteInfo.name or UNKNOWN, location, 1, 1, 1)
-            if db.debug then
+        else
+            GameTooltip:AddDoubleLine("No data from API", location, 1, 0, 0)
+        end
+        if distance then
+            GameTooltip:AddDoubleLine(" ", ("%d yards away"):format(distance))
+        end
+        if db.debug then
+            if vignetteInfo then
                 for k,v in pairs(vignetteInfo) do
                     if k ~= 'name' then
                         GameTooltip:AddDoubleLine(k, type(v) == "boolean" and (v and "true" or "false") or v)
                     end
                 end
-            end
-        else
-            GameTooltip:AddDoubleLine("No data from API", location, 1, 0, 0)
-            if db.debug then
+            else
                 GameTooltip:AddDoubleLine('vignetteGUID', line.vignetteGUID)
             end
         end
@@ -210,7 +225,7 @@ function ns:CreateUI()
         if button ~= "LeftButton" then return end
         if not line.vignetteGUID then return end
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
-        local uiMapID, x, y = VignettePosition(line.vignetteGUID)
+        local uiMapID, _, x, y = VignettePosition(line.vignetteGUID)
         if IsShiftKeyDown() then
             local message = ("%s|cffffff00|Hworldmap:%d:%d:%d|h[%s]|h|r"):format(
                 vignetteInfo and (vignetteInfo.name .. " ") or "",
