@@ -20,7 +20,9 @@ function ns:ADDON_LOADED(event, addon)
             title = true, -- show title (for dragging)
             backdrop = true, -- show a backdrop on the frame
             empty = false, -- show when empty
-            hidden = true, -- show vignettes that won't be on the minimap
+            world = true, -- show vignettes that're on the world map
+            minimap = true, -- show vignettes that're on the minimap
+            hidden = true, -- show vignettes that're not on either
             debug = false, -- show all the debug info in tooltips
         })
         db = _G[myname.."DB"]
@@ -52,39 +54,17 @@ function ns:Refresh()
     for i=1, #vignetteids do
         local instanceid = vignetteids[i]
         -- print(i, vignetteInfo.name)
-
-        local line = window.linePool:Acquire()
-        if count == 0 and not db.title then
-            line:SetPoint("TOPLEFT", window.title)
-            line:SetPoint("TOPRIGHT", window.title)
-        else
-            local anchor = count == 0 and window.title or lastLine
-            line:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT")
-            line:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT")
-        end
-
-        line.vignetteGUID = instanceid
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(instanceid)
-        if vignetteInfo then
-            if db.hidden or (vignetteInfo.onWorldMap or vignetteInfo.onMinimap) then
-                line.icon:SetAtlas(vignetteInfo.atlasName)
-                line.title:SetText(vignetteInfo.name)
-                if not (vignetteInfo.onMinimap or vignetteInfo.onWorldMap) then
-                    line.icon:SetDesaturated(true)
-                    line.icon:SetAlpha(0.5)
-                end
-                line:Show()
+        if self:ShouldShowVignette(vignetteInfo) then
+            local line = self:AddLine(instanceid, vignetteInfo)
+            if count == 0 and not db.title then
+                line:SetPoint("TOPLEFT", window.title)
+                line:SetPoint("TOPRIGHT", window.title)
+            else
+                local anchor = count == 0 and window.title or lastLine
+                line:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT")
+                line:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT")
             end
-        elseif db.hidden then
-            line.icon:SetAtlas("poi-nzothvision") -- "islands-questdisable"?
-            line.icon:SetVertexColor(0.9, 0.3, 1, 1)
-            line.title:SetText(UNKNOWN)
-            line:Show()
-        else
-            window.linePool:Release(line)
-        end
-
-        if line:IsShown() then
             -- print('line was shown', vignetteInfo)
             height = height + line:GetHeight()
             lastLine = line
@@ -124,6 +104,39 @@ ns.PLAYER_ENTERING_WORLD = ns.Refresh
 
 function ns:VIGNETTE_MINIMAP_UPDATED(event, instanceid, onMinimap, ...)
     self:Refresh()
+end
+
+function ns:AddLine(instanceid, vignetteInfo)
+    local line = window.linePool:Acquire()
+    line.vignetteGUID = instanceid
+
+    if vignetteInfo then
+        line.icon:SetAtlas(vignetteInfo.atlasName)
+        line.title:SetText(vignetteInfo.name)
+        if not (vignetteInfo.onMinimap or vignetteInfo.onWorldMap) then
+            line.icon:SetDesaturated(true)
+            line.icon:SetAlpha(0.5)
+        end
+    else
+        line.icon:SetAtlas("poi-nzothvision") -- "islands-questdisable"?
+        line.icon:SetVertexColor(0.9, 0.3, 1, 1)
+        line.title:SetText(UNKNOWN)
+    end
+    line:Show()
+    return line
+end
+
+function ns:ShouldShowVignette(vignetteInfo)
+    if not vignetteInfo then
+        return db.hidden
+    end
+    if not vignetteInfo.onMinimap then
+        if vignetteInfo.onWorldMap then
+            return db.world
+        end
+        return db.hidden
+    end
+    return db.minimap
 end
 
 local function VignettePosition(vignetteGUID)
@@ -268,6 +281,8 @@ SlashCmdList[myname:upper()] = function(msg)
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
         PrintConfigLine('empty', "Show while empty")
+        PrintConfigLine('world', "Show world map items")
+        PrintConfigLine('minimap', "Show minimap items")
         PrintConfigLine('hidden', "Show hidden map items")
         PrintConfigLine('debug', "Show debug information")
         ns.Print("To toggle: /whatsonthemap [type]")
@@ -289,8 +304,12 @@ do
                 { text="Show a title in the frame", value="title", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show a backdrop in the frame", value="backdrop", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show while empty", value="empty", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show hidden map items", value="hidden", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show debug information", value="debug", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show map items...", hasArrow=true, notCheckable=true, menuList={
+                    { text="From the world map", value="world", checked=isChecked, func=toggle, isNotRadio=true, },
+                    { text="From the minimap", value="minimap", checked=isChecked, func=toggle, isNotRadio=true, },
+                    { text="Hidden", value="hidden", checked=isChecked, func=toggle, isNotRadio=true, },
+                }, },
             }
         end
         EasyMenu(menuData, menuFrame, "cursor", 0, 0, "MENU")
