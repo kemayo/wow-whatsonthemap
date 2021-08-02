@@ -20,6 +20,7 @@ function ns:ADDON_LOADED(event, addon)
             title = true, -- show title (for dragging)
             backdrop = true, -- show a backdrop on the frame
             empty = false, -- show when empty
+            direction = true, -- show the direction the vignette is in
             world = true, -- show vignettes that're on the world map
             minimap = true, -- show vignettes that're on the minimap
             hidden = true, -- show vignettes that're not on either
@@ -36,8 +37,12 @@ function ns:ADDON_LOADED(event, addon)
 end
 ns:RegisterEvent("ADDON_LOADED")
 
+local function sort_vignette(a, b)
+    return ns.VignetteDistanceFromPlayer(a) < ns.VignetteDistanceFromPlayer(b)
+end
 function ns:Refresh()
     local vignetteids = C_VignetteInfo.GetVignettes()
+    table.sort(vignetteids, sort_vignette)
 
     window.linePool:ReleaseAll()
     -- print("VIGNETTES_UPDATED", #vignetteids)
@@ -122,6 +127,14 @@ function ns:AddLine(instanceid, vignetteInfo)
         line.icon:SetVertexColor(0.9, 0.3, 1, 1)
         line.title:SetText(UNKNOWN)
     end
+    local _, angle = ns.VignetteDistanceFromPlayer(instanceid)
+    if db.direction then
+        line.direction:SetWidth(30)
+        line.direction:SetText(ns.AngleToCompassDirection(angle, true))
+    else
+        line.direction:SetWidth(0)
+    end
+
     line:Show()
     return line
 end
@@ -148,7 +161,7 @@ local function VignettePosition(vignetteGUID)
     end
 end
 
-local function VignetteDistanceFromPlayer(vignetteGUID)
+function ns.VignetteDistanceFromPlayer(vignetteGUID)
     local uiMapID, position = VignettePosition(vignetteGUID)
     if not (uiMapID and position) then return end
     local player = C_Map.GetPlayerMapPosition(uiMapID, 'player')
@@ -160,15 +173,16 @@ local function VignetteDistanceFromPlayer(vignetteGUID)
     return position:GetLength() * width, angle
 end
 
-local AngleToCompassDirection
 do
     local function round(x) return x + 0.5 - (x + 0.5) % 1 end
-    local directions = {"North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"}
-    local increment = (2*math.pi) / #directions
-    function AngleToCompassDirection(radians)
+    local directions_long = {"North", "Northeast", "East", "Southeast", "South", "Southwest", "West", "Northwest"}
+    local directions_short = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+    function ns.AngleToCompassDirection(radians, short)
         -- algorithm is: find out how many increments we've gone around the
         -- circle, rounded to the nearest one, modulo the number of increments so
         -- we don't go over the top at 2pi
+        local directions = short and directions_short or directions_long
+        local increment = (2*math.pi) / #directions
         local direction = (round(radians / increment) % #directions) + 1
         return directions[direction]
     end
@@ -209,7 +223,7 @@ function ns:CreateUI()
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
         local _, _, x, y = VignettePosition(line.vignetteGUID)
-        local distance, angle = VignetteDistanceFromPlayer(line.vignetteGUID)
+        local distance, angle = ns.VignetteDistanceFromPlayer(line.vignetteGUID)
         local location = (x and y) and ("%d, %d"):format(x * 100, y * 100) or UNKNOWN
         if vignetteInfo then
             GameTooltip:AddDoubleLine(vignetteInfo.name or UNKNOWN, location, 1, 1, 1)
@@ -217,7 +231,7 @@ function ns:CreateUI()
             GameTooltip:AddDoubleLine("No data from API", location, 1, 0, 0)
         end
         if distance then
-            GameTooltip:AddDoubleLine(" ", ("%d yards away, %s"):format(distance, AngleToCompassDirection(angle)))
+            GameTooltip:AddDoubleLine(" ", ("%d yards away, %s"):format(distance, ns.AngleToCompassDirection(angle)))
         end
         if db.debug then
             if vignetteInfo then
@@ -277,6 +291,9 @@ function ns:CreateUI()
             line.title:SetPoint("RIGHT")
             line.title:SetJustifyH("LEFT")
             line.title:SetMaxLines(2)
+            line.direction = line:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge")
+            line.direction:SetPoint("RIGHT")
+            line.title:SetPoint("RIGHT", line.direction, "LEFT")
             line:SetScript("OnEnter", LineTooltip)
             line:SetScript("OnLeave", GameTooltip_Hide)
             line:SetScript("OnMouseUp", Line_OnClick)
@@ -286,6 +303,8 @@ function ns:CreateUI()
         line.icon:SetDesaturated(false)
         line.icon:SetAlpha(1)
         line.icon:SetVertexColor(1, 1, 1, 1)
+        line.direction:SetWidth(30)
+        line.direction:SetText("")
         FramePool_HideAndClearAnchors(pool, line)
     end)
 
@@ -311,6 +330,7 @@ SlashCmdList[myname:upper()] = function(msg)
         ns.Print("What's On The Map?")
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
+        PrintConfigLine('direction', "Show the direction of the item")
         PrintConfigLine('empty', "Show while empty")
         PrintConfigLine('world', "Show world map items")
         PrintConfigLine('minimap', "Show minimap items")
@@ -334,6 +354,7 @@ do
                 { text=myfullname, isTitle=true, },
                 { text="Show a title in the frame", value="title", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show a backdrop in the frame", value="backdrop", checked=isChecked, func=toggle, isNotRadio=true, },
+                { text="Show the direction of the item", value="direction", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show while empty", value="empty", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show debug information", value="debug", checked=isChecked, func=toggle, isNotRadio=true, },
                 { text="Show map items...", hasArrow=true, notCheckable=true, menuList={
