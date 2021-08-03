@@ -163,9 +163,9 @@ end
 
 function ns.VignetteDistanceFromPlayer(vignetteGUID)
     local uiMapID, position = VignettePosition(vignetteGUID)
-    if not (uiMapID and position) then return end
+    if not (uiMapID and position) then return 0, 0 end
     local player = C_Map.GetPlayerMapPosition(uiMapID, 'player')
-    if not player then return end
+    if not player then return 0, 0 end
     local width, height = C_Map.GetMapWorldSize(uiMapID)
     position:Subtract(player)
 
