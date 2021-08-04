@@ -127,8 +127,8 @@ function ns:AddLine(instanceid, vignetteInfo)
         line.icon:SetVertexColor(0.9, 0.3, 1, 1)
         line.title:SetText(UNKNOWN)
     end
-    local _, angle = ns.VignetteDistanceFromPlayer(instanceid)
     if db.direction then
+        local _, angle = ns.VignetteDistanceFromPlayer(instanceid)
         line.direction:SetWidth(30)
         line.direction:SetText(ns.AngleToCompassDirection(angle, true))
     else
@@ -207,6 +207,19 @@ function ns:CreateUI()
         if button == "RightButton" then
             return ns:ShowConfigMenu(w)
         end
+    end)
+    frame:SetScript("OnUpdate", function(_, since)
+        if not db.direction then return end
+        frame.time = (frame.time or 0) + since
+        if frame.time <= 3 then return end
+        for line in frame.linePool:EnumerateActive() do
+            if line.vignetteGUID then
+                local _, angle = ns.VignetteDistanceFromPlayer(line.vignetteGUID)
+                line.direction:SetWidth(30)
+                line.direction:SetText(ns.AngleToCompassDirection(angle, true))
+            end
+        end
+        frame.time = 0
     end)
 
     local title = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
