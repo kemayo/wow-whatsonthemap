@@ -38,6 +38,7 @@ read_globals = {
     -- API functions
     "hooksecurefunc",
     "BankButtonIDToInvSlotID",
+    "C_PetBattles",
     "C_Map",
     "C_SuperTrack",
     "C_VignetteInfo",

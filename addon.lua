@@ -42,14 +42,24 @@ function ns:ADDON_LOADED(event, addon)
         self:RegisterEvent("VIGNETTE_MINIMAP_UPDATED", "Refresh")
         self:RegisterEvent("VIGNETTES_UPDATED", "Refresh")
         self:RegisterEvent("PLAYER_ENTERING_WORLD", "Refresh")
+        self:RegisterEvent("PET_BATTLE_OPENING_START")
+        self:RegisterEvent("PET_BATTLE_CLOSE")
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
+
+function ns:PET_BATTLE_OPENING_START()
+    window:Hide()
+end
+function ns:PET_BATTLE_CLOSE()
+    self:Refresh()
+end
 
 local function sort_vignette(a, b)
     return ns.VignetteDistanceFromPlayer(a) < ns.VignetteDistanceFromPlayer(b)
 end
 function ns:Refresh()
+    if C_PetBattles.IsInBattle() then return end
     local vignetteids = C_VignetteInfo.GetVignettes()
     table.sort(vignetteids, sort_vignette)
 
