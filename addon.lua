@@ -6,9 +6,16 @@ local isClassic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
 function ns.Print(...) print("|cFF33FF99".. myfullname.. "|r:", ...) end
 
 -- events
-local f = CreateFrame("Frame")
-f:SetScript("OnEvent", function(self, event, ...) if ns[event] then return ns[event](ns, event, ...) end end)
-function ns:RegisterEvent(...) for i=1,select("#", ...) do f:RegisterEvent((select(i, ...))) end end
+local f = CreateFrame('Frame')
+f:SetScript("OnEvent", function(_, event, ...)
+    ns[ns.events[event]](ns, event, ...)
+end)
+f:Hide()
+ns.events = {}
+function ns:RegisterEvent(event, method)
+    self.events[event] = method or event
+    f:RegisterEvent(event)
+end
 function ns:UnregisterEvent(...) for i=1,select("#", ...) do f:UnregisterEvent((select(i, ...))) end end
 
 local window
@@ -32,7 +39,9 @@ function ns:ADDON_LOADED(event, addon)
         window = self:CreateUI()
         window:SetPoint("CENTER")
 
-        self:RegisterEvent("VIGNETTE_MINIMAP_UPDATED", "VIGNETTES_UPDATED", "PLAYER_ENTERING_WORLD")
+        self:RegisterEvent("VIGNETTE_MINIMAP_UPDATED", "Refresh")
+        self:RegisterEvent("VIGNETTES_UPDATED", "Refresh")
+        self:RegisterEvent("PLAYER_ENTERING_WORLD", "Refresh")
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
@@ -102,13 +111,6 @@ function ns:Refresh()
 
     window:SetHeight(height)
     window:Show()
-end
-
-ns.VIGNETTES_UPDATED = ns.Refresh
-ns.PLAYER_ENTERING_WORLD = ns.Refresh
-
-function ns:VIGNETTE_MINIMAP_UPDATED(event, instanceid, onMinimap, ...)
-    self:Refresh()
 end
 
 function ns:AddLine(instanceid, vignetteInfo)
