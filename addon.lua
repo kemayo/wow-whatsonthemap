@@ -151,9 +151,15 @@ function ns:AddLine(instanceid, vignetteInfo)
     return line
 end
 
+local hide = {
+    [4582] = true, -- Ripe Purian when you have the Heightened Olfaction buff, zone-wide insanity
+}
 function ns:ShouldShowVignette(vignetteInfo)
     if not vignetteInfo then
         return db.hidden
+    end
+    if hide[vignetteInfo.vignetteID] then
+        return false
     end
     if not vignetteInfo.onMinimap then
         if vignetteInfo.onWorldMap then
