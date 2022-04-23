@@ -255,7 +255,7 @@ function ns:CreateUI()
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
         local _, _, x, y = VignettePosition(line.vignetteGUID)
         local distance, angle = ns.VignetteDistanceFromPlayer(line.vignetteGUID)
-        local location = (x and y) and ("%d, %d"):format(x * 100, y * 100) or UNKNOWN
+        local location = (x and y) and ("%.2f, %.2f"):format(x * 100, y * 100) or UNKNOWN
         if vignetteInfo then
             GameTooltip:AddDoubleLine(vignetteInfo.name or UNKNOWN, location, 1, 1, 1)
         else
