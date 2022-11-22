@@ -1,4 +1,4 @@
-## Interface: 90200
+## Interface: 100002
 ## Title: What's On The Map?
 ## Author: Kemayo
 ## Notes: Show things that have icons on the map or minimap... but not herbs and ore, sorry
