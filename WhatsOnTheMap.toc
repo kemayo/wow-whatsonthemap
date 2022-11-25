@@ -3,7 +3,7 @@
 ## Author: Kemayo
 ## Notes: Show things that have icons on the map or minimap... but not herbs and ore, sorry
 ## SavedVariables: WhatsOnTheMapDB
-## Version: 1
+## Version: @package-version@
 
 ## X-Curse-Project-ID: 509853
 ## X-Wago-ID: BO673Z63
