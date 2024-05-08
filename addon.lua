@@ -242,7 +242,7 @@ function ns:CreateUI()
 
     local title = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     frame.title = title
-    title:SetJustifyH("MIDDLE")
+    title:SetJustifyH("CENTER")
     title:SetJustifyV("MIDDLE")
     title:SetPoint("TOPLEFT", 0, -4)
     title:SetPoint("TOPRIGHT", 0, -4)
