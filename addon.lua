@@ -91,7 +91,7 @@ function ns:Refresh()
         local instanceid = vignetteids[i]
         -- print(i, vignetteInfo.name)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(instanceid)
-        if self:ShouldShowVignette(vignetteInfo) then
+        if self:ShouldShowVignette(instanceid, vignetteInfo) then
             local line = self:AddLine(instanceid, vignetteInfo)
             if count == 0 and not db.title then
                 line:SetPoint("TOPLEFT", window.title)
@@ -166,7 +166,13 @@ end
 local hide = {
     [4582] = true, -- Ripe Purian when you have the Heightened Olfaction buff, zone-wide insanity
 }
-function ns:ShouldShowVignette(vignetteInfo)
+function ns:ShouldShowVignette(vignetteGUID, vignetteInfo)
+    if MAPCLEANER_FILTERED_VIGNETTES then
+        local VIGNETTE, NULL, serverId, instanceId, zoneId, vignetteID, spawnId = strsplit('-', vignetteGUID)
+        if MAPCLEANER_FILTERED_VIGNETTES[vignetteInfo and vignetteInfo.vignetteID or tonumber(vignetteID)] then
+            return false
+        end
+    end
     if not vignetteInfo then
         return db.hidden
     end
