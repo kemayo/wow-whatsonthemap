@@ -1,5 +1,5 @@
 local myname, ns = ...
-local myfullname = GetAddOnMetadata(myname, "Title")
+local myfullname = C_AddOns.GetAddOnMetadata(myname, "Title")
 local db
 local isClassic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
 
@@ -336,7 +336,10 @@ function ns:CreateUI()
         line.icon:SetVertexColor(1, 1, 1, 1)
         line.direction:SetWidth(30)
         line.direction:SetText("")
-        FramePool_HideAndClearAnchors(pool, line)
+
+        -- Pool_HideAndClearAnchors
+        line:Hide()
+        line:ClearAllPoints()
     end)
 
     return frame
