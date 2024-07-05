@@ -276,7 +276,8 @@ function ns:CreateUI()
             end
         end
         GameTooltip_AddInstructionLine(GameTooltip, "Control-click to add a map pin")
-        GameTooltip_AddInstructionLine(GameTooltip, "Shift-click to share to chat")
+        GameTooltip_AddInstructionLine(GameTooltip, "Shift-click to share name and map pin to chat")
+        GameTooltip_AddInstructionLine(GameTooltip, "Alt-click to share only the map pin to chat")
         GameTooltip:Show()
     end
     local function Line_OnClick(line, button)
@@ -307,6 +308,20 @@ function ns:CreateUI()
                 local uiMapPoint = UiMapPoint.CreateFromCoordinates(uiMapID, x, y)
                 C_Map.SetUserWaypoint(uiMapPoint)
                 C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+            end
+        elseif IsAltKeyDown() then
+            local message = ("|cffffff00|Hworldmap:%d:%d:%d|h[%s]|h|r"):format(
+                uiMapID,
+                x * 10000,
+                y * 10000,
+                -- WoW seems to filter out anything which isn't the standard MAP_PIN_HYPERLINK
+                MAP_PIN_HYPERLINK
+            )
+            PlaySound(SOUNDKIT.UI_MAP_WAYPOINT_CHAT_SHARE)
+            -- if you have an open editbox, just paste to it
+            if not ChatEdit_InsertLink(message) then
+                -- open the chat to whatever it was on and add the text
+                ChatFrame_OpenChat(message)
             end
         end
     end
