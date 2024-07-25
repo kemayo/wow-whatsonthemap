@@ -107,7 +107,6 @@ read_globals = {
     "CreateFrame",
     "CreateFramePool",
     "UiMapPoint",
-    "InterfaceOptionsFrame_OpenToCategory",
     "ToggleDropDownMenu",
     "UIDropDownMenu_AddButton",
     "UISpecialFrames",
@@ -118,8 +117,8 @@ read_globals = {
     "GameTooltip_Hide",
     "ChatEdit_InsertLink",
     "ChatFrame_OpenChat",
-    "EasyMenu",
     "Vector2D_CalculateAngleBetween",
+    "MenuUtil",
 
     -- FrameXML Constants
     "BACKPACK_CONTAINER",

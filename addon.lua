@@ -376,29 +376,25 @@ end
 
 do
     local menuFrame, menuData
-    local isChecked = function(button) return db[button.value] end
-    local toggle = function(button, arg1, arg2, checked)
-        db[button.value] = not checked
+    local isChecked = function(key) return db[key] end
+    local toggleChecked = function(key)
+        db[key] = not db[key]
         ns:Refresh()
     end
     function ns:ShowConfigMenu(frame)
-        if not menuFrame then
-            menuFrame = CreateFrame("Frame", myname.."MenuFrame", UIParent, "UIDropDownMenuTemplate")
-            menuData = {
-                { text=myfullname, isTitle=true, },
-                { text="Show a title in the frame", value="title", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show a backdrop in the frame", value="backdrop", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show the direction of the item", value="direction", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show while empty", value="empty", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show debug information", value="debug", checked=isChecked, func=toggle, isNotRadio=true, },
-                { text="Show map items...", hasArrow=true, notCheckable=true, menuList={
-                    { text="From the world map", value="world", checked=isChecked, func=toggle, isNotRadio=true, },
-                    { text="From the minimap", value="minimap", checked=isChecked, func=toggle, isNotRadio=true, },
-                    { text="Hidden", value="hidden", checked=isChecked, func=toggle, isNotRadio=true, },
-                }, },
-            }
-        end
-        EasyMenu(menuData, menuFrame, "cursor", 0, 0, "MENU")
+        MenuUtil.CreateContextMenu(frame, function(owner, rootDescription)
+            rootDescription:SetTag("MENU_WHATSONTHEMAP_CONFIG")
+            rootDescription:CreateTitle(myfullname)
+            rootDescription:CreateCheckbox("Show a title in the frame", isChecked, toggleChecked, "title")
+            rootDescription:CreateCheckbox("Show a backdrop in the frame", isChecked, toggleChecked, "backdrop")
+            rootDescription:CreateCheckbox("Show the direction of the item", isChecked, toggleChecked, "direction")
+            rootDescription:CreateCheckbox("Show while empty", isChecked, toggleChecked, "empty")
+            rootDescription:CreateCheckbox("Show debug information", isChecked, toggleChecked, "debug")
+            local mapItems = rootDescription:CreateButton("Show map items...")
+            mapItems:CreateCheckbox("From the world map", isChecked, toggleChecked, "world")
+            mapItems:CreateCheckbox("From the minimap", isChecked, toggleChecked, "minimap")
+            mapItems:CreateCheckbox("Hidden", isChecked, toggleChecked, "hidden")
+        end)
     end
 end
 
