@@ -26,6 +26,7 @@ function ns:ADDON_LOADED(event, addon)
         _G[myname.."DB"] = setDefaults(_G[myname.."DB"] or {}, {
             title = true, -- show title (for dragging)
             backdrop = true, -- show a backdrop on the frame
+            combat = true, -- show during combat
             empty = false, -- show when empty
             direction = true, -- show the direction the vignette is in
             world = true, -- show vignettes that're on the world map
@@ -44,6 +45,8 @@ function ns:ADDON_LOADED(event, addon)
         self:RegisterEvent("PLAYER_ENTERING_WORLD", "Refresh")
         self:RegisterEvent("PET_BATTLE_OPENING_START")
         self:RegisterEvent("PET_BATTLE_CLOSE")
+        self:RegisterEvent("PLAYER_REGEN_DISABLED")
+        self:RegisterEvent("PLAYER_REGEN_ENABLED")
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
@@ -54,12 +57,21 @@ end
 function ns:PET_BATTLE_CLOSE()
     self:Refresh()
 end
+function ns:PLAYER_REGEN_DISABLED()
+    if not db.combat then
+        window:Hide()
+    end
+end
+function ns:PLAYER_REGEN_ENABLED()
+    self:Refresh()
+end
 
 local function sort_vignette(a, b)
     return ns.VignetteDistanceFromPlayer(a) < ns.VignetteDistanceFromPlayer(b)
 end
 function ns:Refresh()
     if C_PetBattles.IsInBattle() then return end
+    if not db.combat and InCombatLockdown() then return end
     local vignetteids = C_VignetteInfo.GetVignettes()
     table.sort(vignetteids, sort_vignette)
 
@@ -364,6 +376,7 @@ SlashCmdList[myname:upper()] = function(msg)
         ns.Print("What's On The Map?")
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
+        PrintConfigLine('combat', "Show during combat")
         PrintConfigLine('direction', "Show the direction of the item")
         PrintConfigLine('empty', "Show while empty")
         PrintConfigLine('world', "Show world map items")
@@ -387,6 +400,7 @@ do
             rootDescription:CreateTitle(myfullname)
             rootDescription:CreateCheckbox("Show a title in the frame", isChecked, toggleChecked, "title")
             rootDescription:CreateCheckbox("Show a backdrop in the frame", isChecked, toggleChecked, "backdrop")
+            rootDescription:CreateCheckbox("Show during combat", isChecked, toggleChecked, "combat")
             rootDescription:CreateCheckbox("Show the direction of the item", isChecked, toggleChecked, "direction")
             rootDescription:CreateCheckbox("Show while empty", isChecked, toggleChecked, "empty")
             rootDescription:CreateCheckbox("Show debug information", isChecked, toggleChecked, "debug")
