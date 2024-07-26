@@ -33,6 +33,7 @@ function ns:ADDON_LOADED(event, addon)
             minimap = true, -- show vignettes that're on the minimap
             hidden = true, -- show vignettes that're not on either
             debug = false, -- show all the debug info in tooltips
+            hide = {}, -- {[vignetteid] = true}
         })
         db = _G[myname.."DB"]
         self:UnregisterEvent("ADDON_LOADED")
@@ -64,6 +65,10 @@ function ns:PLAYER_REGEN_DISABLED()
 end
 function ns:PLAYER_REGEN_ENABLED()
     self:Refresh()
+end
+
+function ns:GetVignetteID(vignetteGUID, vignetteInfo)
+    return vignetteInfo and vignetteInfo.vignetteID or tonumber((select(6, strsplit('-', vignetteGUID))))
 end
 
 local function sort_vignette(a, b)
@@ -167,17 +172,16 @@ local hide = {
     [4582] = true, -- Ripe Purian when you have the Heightened Olfaction buff, zone-wide insanity
 }
 function ns:ShouldShowVignette(vignetteGUID, vignetteInfo)
-    if MAPCLEANER_FILTERED_VIGNETTES then
-        local VIGNETTE, NULL, serverId, instanceId, zoneId, vignetteID, spawnId = strsplit('-', vignetteGUID)
-        if MAPCLEANER_FILTERED_VIGNETTES[vignetteInfo and vignetteInfo.vignetteID or tonumber(vignetteID)] then
-            return false
-        end
+    -- "Vignette-0-[serverID]-[instanceID]-[zoneUID]-[vignetteID]-[spawnUID]"
+    local vignetteID = self:GetVignetteID(vignetteGUID, vignetteInfo)
+    if _G.MAPCLEANER_FILTERED_VIGNETTES and _G.MAPCLEANER_FILTERED_VIGNETTES[vignetteID] then
+        return false
+    end
+    if hide[vignetteID] or db.hide[vignetteID] then
+        return false
     end
     if not vignetteInfo then
         return db.hidden
-    end
-    if hide[vignetteInfo.vignetteID] then
-        return false
     end
     if not vignetteInfo.onMinimap then
         if vignetteInfo.onWorldMap then
@@ -271,6 +275,7 @@ function ns:CreateUI()
         local anchor = (line:GetCenter() < (UIParent:GetWidth() / 2)) and "ANCHOR_RIGHT" or "ANCHOR_LEFT"
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
+        local vignetteID = self:GetVignetteID(line.vignetteGUID, vignetteInfo)
         local _, _, x, y = VignettePosition(line.vignetteGUID)
         local distance, angle = ns.VignetteDistanceFromPlayer(line.vignetteGUID)
         local location = (x and y) and ("%.2f, %.2f"):format(x * 100, y * 100) or UNKNOWN
@@ -291,10 +296,14 @@ function ns:CreateUI()
                 end
             else
                 GameTooltip:AddDoubleLine('vignetteGUID', line.vignetteGUID)
+                GameTooltip:AddDoubleLine('vignetteID', vignetteID or '?')
             end
         end
         GameTooltip_AddInstructionLine(GameTooltip, "Control-click to add a map pin")
         GameTooltip_AddInstructionLine(GameTooltip, "Shift-click to share to chat")
+        if vignetteID and vignetteID ~= 0 then
+            GameTooltip_AddInstructionLine(GameTooltip, ("Alt-click to hide vignette %d"):format(vignetteID))
+        end
         GameTooltip:Show()
     end
     local function Line_OnClick(line, button)
@@ -325,6 +334,12 @@ function ns:CreateUI()
                 local uiMapPoint = UiMapPoint.CreateFromCoordinates(uiMapID, x, y)
                 C_Map.SetUserWaypoint(uiMapPoint)
                 C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+            end
+        elseif IsAltKeyDown() then
+            local vignetteID = self:GetVignetteID(line.vignetteGUID, vignetteInfo)
+            if vignetteID and vignetteID ~= 0 then
+                db.hide[vignetteID] = true
+                ns:Refresh()
             end
         end
     end
@@ -373,12 +388,14 @@ _G["SLASH_".. myname:upper().."1"] = "/whatsonthemap"
 _G["SLASH_".. myname:upper().."2"] = "/wotm"
 SlashCmdList[myname:upper()] = function(msg)
     msg = msg:trim()
-    if db[msg] ~= nil then
+    if msg == "clearhidden" then
+        table.wipe(db.hide)
+        ns:Refresh()
+    elseif db[msg] ~= nil then
         db[msg] = not db[msg]
         ns.Print(msg, '=', db[msg] and YES or NO)
         ns:Refresh()
-    end
-    if msg == "" then
+    elseif msg == "" then
         ns.Print("What's On The Map?")
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
@@ -389,6 +406,7 @@ SlashCmdList[myname:upper()] = function(msg)
         PrintConfigLine('minimap', "Show minimap items")
         PrintConfigLine('hidden', "Show hidden map items")
         PrintConfigLine('debug', "Show debug information")
+        ns.Print('clearhidden', '-', "Clear all hidden vignettes")
         ns.Print("To toggle: /whatsonthemap [type]")
     end
 end
@@ -414,6 +432,11 @@ do
             mapItems:CreateCheckbox("From the world map", isChecked, toggleChecked, "world")
             mapItems:CreateCheckbox("From the minimap", isChecked, toggleChecked, "minimap")
             mapItems:CreateCheckbox("Hidden", isChecked, toggleChecked, "hidden")
+            rootDescription:CreateButton("Clear hidden vignette list", function()
+                table.wipe(db.hide)
+                ns:Refresh()
+                return MenuResponse.CloseAll
+            end)
         end)
     end
 end

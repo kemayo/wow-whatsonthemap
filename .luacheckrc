@@ -27,7 +27,7 @@ read_globals = {
     "mod",
     "max",
     "table", "tinsert", "wipe", "copy",
-    "string", "tostringall", "strtrim", "strmatch",
+    "string", "tostringall", "strtrim", "strmatch", "strsplit",
 
     -- our own globals
 
@@ -119,6 +119,7 @@ read_globals = {
     "ChatFrame_OpenChat",
     "Vector2D_CalculateAngleBetween",
     "MenuUtil",
+    "MenuResponse",
 
     -- FrameXML Constants
     "BACKPACK_CONTAINER",
