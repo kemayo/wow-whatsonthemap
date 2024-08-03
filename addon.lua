@@ -151,6 +151,10 @@ function ns:AddLine(instanceid, vignetteInfo)
             line.icon:SetDesaturated(true)
             line.icon:SetAlpha(0.5)
         end
+        if vignetteInfo.name then
+            local macrotext = "/cleartarget \n/targetexact " .. vignetteInfo.name
+            line:SetAttribute("macrotext1", macrotext)
+        end
     else
         line.icon:SetAtlas("poi-nzothvision") -- "islands-questdisable"?
         line.icon:SetVertexColor(0.9, 0.3, 1, 1)
@@ -299,6 +303,9 @@ function ns:CreateUI()
                 GameTooltip:AddDoubleLine('vignetteID', vignetteID or '?')
             end
         end
+        if not InCombatLockdown() then
+            GameTooltip_AddInstructionLine(GameTooltip, "Click to /target this name")
+        end
         GameTooltip_AddInstructionLine(GameTooltip, "Control-click to add a map pin")
         GameTooltip_AddInstructionLine(GameTooltip, "Shift-click to share to chat")
         if vignetteID and vignetteID ~= 0 then
@@ -344,7 +351,7 @@ function ns:CreateUI()
         end
     end
 
-    frame.linePool = CreateFramePool("Frame", frame, nil, function(pool, line)
+    frame.linePool = CreateFramePool("Button", frame, "InsecureActionButtonTemplate", function(pool, line)
         if not line.icon then
             line:SetHeight(26)
             line.icon = line:CreateTexture()
@@ -362,6 +369,9 @@ function ns:CreateUI()
             line:SetScript("OnLeave", GameTooltip_Hide)
             line:SetScript("OnMouseUp", Line_OnClick)
             line:EnableMouse(true)
+            line:RegisterForClicks("AnyUp", "AnyDown")
+
+            line:SetAttribute("type", "macro")
         end
         line.vignetteGUID = nil
         line.icon:SetDesaturated(false)
@@ -369,6 +379,7 @@ function ns:CreateUI()
         line.icon:SetVertexColor(1, 1, 1, 1)
         line.direction:SetWidth(30)
         line.direction:SetText("")
+        line:SetAttribute("macrotext1", "")
 
         -- Pool_HideAndClearAnchors
         line:Hide()
