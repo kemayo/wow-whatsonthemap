@@ -80,6 +80,12 @@ function ns:Refresh()
     local vignetteids = C_VignetteInfo.GetVignettes()
     table.sort(vignetteids, sort_vignette)
 
+    -- Goal: have the frame's top-left point still be in the exact same
+    -- Needed because LibWindow does tricks with the points to keep it
+    -- in a sensible place (which it will restore when we call save)
+    local frameMinX, frameMinY, frameWidth, frameHeight = window:GetRect()
+    local frameMaxX, frameMaxY = frameMinX + frameWidth, frameMinY + frameHeight
+
     window.linePool:ReleaseAll()
     -- print("VIGNETTES_UPDATED", #vignetteids)
 
@@ -138,6 +144,8 @@ function ns:Refresh()
         window:SetBackdropBorderColor(0, 0, 0, 0)
     end
 
+    window:ClearAllPoints()
+    window:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", frameMinX, frameMaxY)
     window:SetHeight(height)
     window:Show()
 end
