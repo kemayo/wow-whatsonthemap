@@ -104,6 +104,7 @@ read_globals = {
 
     -- FrameXML API
     "Enum",
+    "CreateAtlasMarkup",
     "CreateFrame",
     "CreateFramePool",
     "UiMapPoint",
