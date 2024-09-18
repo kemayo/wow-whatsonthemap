@@ -85,8 +85,10 @@ function ns:Refresh()
 
     if db.title then
         window.title:Show()
+        window.resize:Show()
     else
         window.title:Hide()
+        window.resize:Hide()
     end
 
     local count = 0
@@ -235,6 +237,7 @@ end
 function ns:CreateUI()
     local frame = CreateFrame("Frame", "WhatsOnTheMapFrame", UIParent, "BackdropTemplate")
     frame:SetSize(240, 60)
+    frame:SetResizable(true)
     frame:SetBackdrop({
         edgeFile = [[Interface\Buttons\WHITE8X8]],
         bgFile = [[Interface\Buttons\WHITE8X8]],
@@ -268,11 +271,29 @@ function ns:CreateUI()
 
     local title = frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     frame.title = title
+    title:SetWordWrap(false)
     title:SetJustifyH("CENTER")
     title:SetJustifyV("MIDDLE")
     title:SetPoint("TOPLEFT", 0, -4)
     title:SetPoint("TOPRIGHT", 0, -4)
     title:SetText(myfullname)
+
+    frame:SetResizeBounds(title:GetWrappedWidth() + 2, 60, 400, 1000)
+
+    local resize = CreateFrame("Button", nil, frame)
+    resize:EnableMouse(true)
+    resize:SetPoint("BOTTOMRIGHT", 1, -1)
+    resize:SetSize(16,16)
+    resize:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    resize:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight", "ADD")
+    resize:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    resize:SetScript("OnMouseDown", function()
+        frame:StartSizing("RIGHT")
+    end)
+    resize:SetScript("OnMouseUp", function()
+        frame:StopMovingOrSizing("RIGHT")
+    end)
+    frame.resize = resize
 
     local function LineTooltip(line)
         if not line.vignetteGUID then return end
@@ -363,7 +384,7 @@ function ns:CreateUI()
             line.title:SetJustifyH("LEFT")
             line.title:SetMaxLines(2)
             line.direction = line:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge")
-            line.direction:SetPoint("RIGHT")
+            line.direction:SetPoint("RIGHT", -2, 0)
             line.title:SetPoint("RIGHT", line.direction, "LEFT")
             line:SetScript("OnEnter", LineTooltip)
             line:SetScript("OnLeave", GameTooltip_Hide)
