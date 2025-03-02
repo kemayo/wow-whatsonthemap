@@ -4,7 +4,7 @@
 ## Notes: Show things that have icons on the map or minimap... but not herbs and ore, sorry
 ## IconAtlas: VignetteLoot
 ## SavedVariables: WhatsOnTheMapDB
-## Version: @package-version@
+## Version: @project-version@
 
 ## Category-enUS: Map
 ## Category-deDE: Karte
