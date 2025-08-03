@@ -213,6 +213,14 @@ local function VignettePosition(vignetteGUID)
     if position then
         return uiMapID, position, position:GetXY()
     end
+    -- try again on the parent map:
+    local mapInfo = C_Map.GetMapInfo(uiMapID)
+    if mapInfo and mapInfo.parentMapID and mapInfo.parentMapID ~= 0 then
+        position = C_VignetteInfo.GetVignettePosition(vignetteGUID, mapInfo.parentMapID)
+        if position then
+            return mapInfo.parentMapID, position, position:GetXY()
+        end
+    end
 end
 
 function ns.VignetteDistanceFromPlayer(vignetteGUID)
@@ -309,9 +317,9 @@ function ns:CreateUI()
         GameTooltip:SetOwner(line, anchor, 0, -60)
         local vignetteInfo = C_VignetteInfo.GetVignetteInfo(line.vignetteGUID)
         local vignetteID = self:GetVignetteID(line.vignetteGUID, vignetteInfo)
-        local _, _, x, y = VignettePosition(line.vignetteGUID)
+        local uiMapID, _, x, y = VignettePosition(line.vignetteGUID)
         local distance, angle = ns.VignetteDistanceFromPlayer(line.vignetteGUID)
-        local location = (x and y) and ("%.2f, %.2f"):format(x * 100, y * 100) or UNKNOWN
+        local location = (uiMapID and x and y) and ("%d: %.2f, %.2f"):format(uiMapID, x * 100, y * 100) or UNKNOWN
         if vignetteInfo then
             GameTooltip:AddDoubleLine(vignetteInfo.name or UNKNOWN, location, 1, 1, 1)
         else
