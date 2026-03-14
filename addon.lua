@@ -38,6 +38,10 @@ function ns:ADDON_LOADED(event, addon)
         db = _G[myname.."DB"]
         self:UnregisterEvent("ADDON_LOADED")
 
+        if type(db.hide) ~= "table" then
+            db.hide = {}
+        end
+
         window = self:CreateUI()
         window:SetPoint("CENTER")
 
@@ -437,13 +441,9 @@ _G["SLASH_".. myname:upper().."2"] = "/wotm"
 SlashCmdList[myname:upper()] = function(msg)
     msg = msg:trim()
     if msg == "clearhidden" then
-        table.wipe(db.hide)
+        db.hide = {}
         ns:Refresh()
-    elseif db[msg] ~= nil then
-        db[msg] = not db[msg]
-        ns.Print(msg, '=', db[msg] and YES or NO)
-        ns:Refresh()
-    elseif msg == "" then
+    elseif msg == "" or msg == "hide" then
         ns.Print("What's On The Map?")
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
@@ -456,6 +456,10 @@ SlashCmdList[myname:upper()] = function(msg)
         PrintConfigLine('debug', "Show debug information")
         ns.Print('clearhidden', '-', "Clear all hidden vignettes")
         ns.Print("To toggle: /whatsonthemap [type]")
+    elseif db[msg] ~= nil then
+        db[msg] = not db[msg]
+        ns.Print(msg, '=', db[msg] and YES or NO)
+        ns:Refresh()
     end
 end
 
@@ -482,7 +486,7 @@ do
             mapItems:CreateCheckbox("From the minimap", isChecked, toggleChecked, "minimap")
             mapItems:CreateCheckbox("Invisible "..invisibleString, isChecked, toggleChecked, "hidden")
             rootDescription:CreateButton("Unhide everything", function()
-                table.wipe(db.hide)
+                db.hide = {}
                 ns:Refresh()
                 return MenuResponse.CloseAll
             end)
