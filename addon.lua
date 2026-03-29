@@ -27,6 +27,7 @@ function ns:ADDON_LOADED(event, addon)
             title = true, -- show title (for dragging)
             backdrop = true, -- show a backdrop on the frame
             combat = true, -- show during combat
+            instances = true, -- show in instances
             empty = false, -- show when empty
             direction = true, -- show the direction the vignette is in
             world = true, -- show vignettes that're on the world map
@@ -49,9 +50,9 @@ function ns:ADDON_LOADED(event, addon)
         self:RegisterEvent("VIGNETTES_UPDATED", "Refresh")
         self:RegisterEvent("PLAYER_ENTERING_WORLD", "Refresh")
         self:RegisterEvent("PET_BATTLE_OPENING_START")
-        self:RegisterEvent("PET_BATTLE_CLOSE")
+        self:RegisterEvent("PET_BATTLE_CLOSE", "Refresh")
         self:RegisterEvent("PLAYER_REGEN_DISABLED")
-        self:RegisterEvent("PLAYER_REGEN_ENABLED")
+        self:RegisterEvent("PLAYER_REGEN_ENABLED", "Refresh")
     end
 end
 ns:RegisterEvent("ADDON_LOADED")
@@ -59,16 +60,10 @@ ns:RegisterEvent("ADDON_LOADED")
 function ns:PET_BATTLE_OPENING_START()
     window:Hide()
 end
-function ns:PET_BATTLE_CLOSE()
-    self:Refresh()
-end
 function ns:PLAYER_REGEN_DISABLED()
     if not db.combat then
         window:Hide()
     end
-end
-function ns:PLAYER_REGEN_ENABLED()
-    self:Refresh()
 end
 
 function ns:GetVignetteID(vignetteGUID, vignetteInfo)
@@ -81,6 +76,7 @@ end
 function ns:Refresh()
     if C_PetBattles.IsInBattle() then return end
     if not db.combat and InCombatLockdown() then return end
+    if not db.instance and IsInInstance() then return window:Hide() end
     local vignetteids = C_VignetteInfo.GetVignettes()
     table.sort(vignetteids, sort_vignette)
 
@@ -448,6 +444,7 @@ SlashCmdList[myname:upper()] = function(msg)
         PrintConfigLine('title', "Show a title in the frame")
         PrintConfigLine('backdrop', "Show a backdrop in the frame")
         PrintConfigLine('combat', "Show during combat")
+        PrintConfigLine('instances', "Show in instances")
         PrintConfigLine('direction', "Show the direction of the item")
         PrintConfigLine('empty', "Show while empty")
         PrintConfigLine('world', "Show world map items")
@@ -479,6 +476,7 @@ do
             rootDescription:CreateCheckbox("Show backdrop", isChecked, toggleChecked, "backdrop")
             rootDescription:CreateCheckbox("Show direction", isChecked, toggleChecked, "direction")
             rootDescription:CreateCheckbox("During combat", isChecked, toggleChecked, "combat")
+            rootDescription:CreateCheckbox("Inside instances", isChecked, toggleChecked, "instances")
             rootDescription:CreateCheckbox("While empty", isChecked, toggleChecked, "empty")
             rootDescription:CreateCheckbox("Debug information", isChecked, toggleChecked, "debug")
             local mapItems = rootDescription:CreateButton("Show map items...")

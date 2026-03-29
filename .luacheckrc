@@ -74,6 +74,7 @@ read_globals = {
     "GetItemInfoInstant",
     "GetTime",
     "InCombatLockdown",
+    "IsInInstance",
     "IsAltKeyDown",
     "IsControlKeyDown",
     "IsShiftKeyDown",
